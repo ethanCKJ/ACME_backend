@@ -17,5 +17,6 @@ public record Order(int id,
                     String address,
                     String city,
                     String phone,
+                    String email,
                     Shipping shipping,
                     int customerId){}
