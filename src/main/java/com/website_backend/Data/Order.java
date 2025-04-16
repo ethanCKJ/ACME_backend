@@ -19,4 +19,4 @@ public record Order(int id,
                     String phone,
                     String email,
                     Shipping shipping,
-                    int customerId){}
+                    Integer customerId){}

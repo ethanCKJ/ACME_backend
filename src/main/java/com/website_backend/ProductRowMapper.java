@@ -18,7 +18,9 @@ public class ProductRowMapper implements RowMapper<ProductInfo> {
     // valueOf converts string to enum
     productInfo.setProductCategory(ProductCategory.valueOf(rs.getString("category")));
     productInfo.setProductName(rs.getString("product_name"));
-    productInfo.setDiscontinued(rs.getBoolean("is_discontinued"));
+    productInfo.setImageName(rs.getString("image_name"));
+    productInfo.setPopularity(rs.getInt("popularity"));
+    productInfo.setDiscontinued(false);
     return productInfo;
   }
 }

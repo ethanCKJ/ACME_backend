@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.ValidationMessage;
 import com.website_backend.Data.Order;
+import com.website_backend.Data.ProductCategory;
 import com.website_backend.Data.ProductInfo;
 import java.util.List;
 import java.util.Set;
@@ -15,8 +16,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -26,7 +29,8 @@ public class Controller {
   ProductRowMapper productRowMapper = new ProductRowMapper();
 
   ObjectMapper objectMapper = new ObjectMapper();
-  OrderValidator orderValidator = new OrderValidator();
+  @Autowired
+  OrderValidator orderValidator;
 
   @Autowired
   JsonSchema orderSchema;
@@ -40,9 +44,13 @@ public class Controller {
     return new ResponseEntity<>(HttpStatus.OK);
   }
 
-  @GetMapping("/products")
-  public ResponseEntity<?> getProducts(){
-    List<ProductInfo> productInfoList = jdbcTemplate.query("SELECT * FROM product", productRowMapper);
+  @GetMapping("/products/{category}")
+  public ResponseEntity<?> getProducts(@PathVariable String category, @RequestParam int minPrice, @RequestParam int maxPrice){
+    // TODO: Move to separate endpoint or handler
+    // stock not found
+    List<ProductInfo> productInfoList = jdbcTemplate.query("""
+    SELECT *FROM product
+    WHERE (is_discontinued=0) AND (price BETWEEN ? AND ?) AND (category=?) AND (stock >= 1)""", productRowMapper,minPrice, maxPrice, category);
     return new ResponseEntity<>(productInfoList, HttpStatus.OK);
   }
 

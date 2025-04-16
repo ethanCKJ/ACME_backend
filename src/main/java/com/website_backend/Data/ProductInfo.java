@@ -11,6 +11,8 @@ public class ProductInfo {
   private ProductCategory productCategory;
   private String productName;
   private boolean isDiscontinued;
+  private int popularity;
+  private String imageName;
 
   public ProductInfo() {
 
@@ -73,5 +75,21 @@ public class ProductInfo {
 
   public void setDiscontinued(boolean isDiscontinued) {
     this.isDiscontinued = isDiscontinued;
+  }
+
+  public int getPopularity() {
+    return popularity;
+  }
+
+  public void setPopularity(int popularity) {
+    this.popularity = popularity;
+  }
+
+  public String getImageName() {
+    return imageName;
+  }
+
+  public void setImageName(String imageName) {
+    this.imageName = imageName;
   }
 }
