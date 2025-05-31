@@ -5,6 +5,8 @@ import com.website_backend.Data.Order;
 import com.website_backend.Data.OrderDetail;
 import java.sql.Types;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -65,6 +67,28 @@ public class OrderRepository {
     if (newId != null){
       order.setOrderId(newId.intValue());
     }
+
+    // save the order details
+    for (OrderDetail orderDetail : order.getOrderDetails()){
+      orderDetail.setOrderId(order.getOrderId());
+      saveOrderDetail(orderDetail);
+    }
     return ErrorCode.NO_ERROR;
+  }
+
+  private void saveOrderDetail(OrderDetail orderDetail){
+    try {
+      Map<String, Object> params = Map.of("productId", orderDetail.getProductId(),
+          "orderId", orderDetail.getOrderId(),
+          "quantity", orderDetail.getQuantity(),
+          "price", orderDetail.getPrice(),
+          "discount", orderDetail.getDiscount()
+          );
+      namedParameterJdbcTemplate.update("INSERT INTO acme_db.order_details(product_id, order_id, quantity, price, discount)"
+          + " VALUES (:productId, :orderId, :quantity, :price, :discount)",
+          params);
+    } catch (Exception e) {
+      System.out.println("ERROR: saving " + orderDetail + " failed somehow " + e.getLocalizedMessage());
+    }
   }
 }
