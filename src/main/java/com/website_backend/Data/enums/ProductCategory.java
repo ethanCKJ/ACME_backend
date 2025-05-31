@@ -1,4 +1,4 @@
-package com.website_backend.Data;
+package com.website_backend.Data.enums;
 
 public enum ProductCategory {
   cookie,

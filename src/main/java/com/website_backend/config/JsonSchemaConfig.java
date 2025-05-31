@@ -1,4 +1,4 @@
-package com.website_backend;
+package com.website_backend.config;
 
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;

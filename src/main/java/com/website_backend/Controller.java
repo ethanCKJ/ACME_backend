@@ -1,20 +1,27 @@
 package com.website_backend;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.ValidationMessage;
+import com.website_backend.Data.enums.ErrorCode;
 import com.website_backend.Data.Order;
-import com.website_backend.Data.ProductCategory;
-import com.website_backend.Data.ProductInfo;
+import com.website_backend.Data.response.ProductInfo;
+import com.website_backend.Data.response.OrderResponse;
+import com.website_backend.ordering.OrderService;
+import com.website_backend.product.ProductRowMapper;
+import com.website_backend.product.ProductService;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,59 +29,70 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@CrossOrigin(originPatterns = "http://localhost:*", maxAge = 3600)
 @RestController
 public class Controller {
+
+  private final OrderService orderService;
+  private final ProductService productService;
+  private final DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+  private final ProductRowMapper productRowMapper = new ProductRowMapper();
+  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final Logger log = LoggerFactory.getLogger(Controller.class);
+
   @Autowired
   JdbcTemplate jdbcTemplate;
-  ProductRowMapper productRowMapper = new ProductRowMapper();
-
-  ObjectMapper objectMapper = new ObjectMapper();
-  @Autowired
-  OrderValidator orderValidator;
 
   @Autowired
   JsonSchema orderSchema;
 
-  public Controller(){
-
+  public Controller(OrderService orderService, ProductService productService) {
+    this.orderService = orderService;
+    this.productService = productService;
   }
+
   @GetMapping("/debug")
-  public ResponseEntity<?> getDebug(){
+  public ResponseEntity<?> getDebug() {
     System.out.println(jdbcTemplate.queryForList("SELECT * FROM product"));
     return new ResponseEntity<>(HttpStatus.OK);
   }
 
   @GetMapping("/products/{category}")
-  public ResponseEntity<?> getProducts(@PathVariable String category, @RequestParam int minPrice, @RequestParam int maxPrice){
-    // TODO: Move to separate endpoint or handler
-    // stock not found
-    List<ProductInfo> productInfoList = jdbcTemplate.query("""
-    SELECT *FROM product
-    WHERE (is_discontinued=0) AND (price BETWEEN ? AND ?) AND (category=?) AND (stock >= 1)""", productRowMapper,minPrice, maxPrice, category);
+  public ResponseEntity<?> getProducts(@PathVariable String category, @RequestParam int minPrice,
+      @RequestParam int maxPrice) {
+    List<ProductInfo> productInfoList = productService.getProducts(category, minPrice, maxPrice);
     return new ResponseEntity<>(productInfoList, HttpStatus.OK);
   }
 
   @PostMapping("/order")
-  public ResponseEntity<?> placeOrder(@RequestBody String json){
+  public ResponseEntity<?> placeOrder(@RequestBody String json) {
     JsonNode jsonNode;
-    try{
+    try {
       jsonNode = objectMapper.readTree(json);
       Set<ValidationMessage> msg = orderSchema.validate(jsonNode);
-      if (msg.isEmpty()){
+      System.out.println("msg" + msg);
+      if (msg.isEmpty()) {
         Order order = objectMapper.treeToValue(jsonNode, Order.class);
-        boolean isOrderValid = orderValidator.isOrderValid(order);
-        if (isOrderValid){
-          return new ResponseEntity<>(HttpStatus.OK);
+        System.out.println(order);
+        ErrorCode errorCode = orderService.handleOrder(order);
+        if (errorCode == ErrorCode.NO_ERROR) {
+          OrderResponse response = new OrderResponse(order.getOrderId(),
+              order.getEmail(),
+              fmt.format(order.getRequiredDatetime()));
+          return new ResponseEntity<>(response, HttpStatus.OK);
         }
-        else{
-          return new ResponseEntity<>("Product does not exist or out of stock",HttpStatus.BAD_REQUEST);
-        }
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
       }
-      else{
-        return new ResponseEntity<>(msg, HttpStatus.BAD_REQUEST);
-      }
+      System.out.println(msg);
     } catch (JsonProcessingException e) {
       throw new RuntimeException(e);
     }
+    return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+  }
+
+  @PostMapping("/login")
+  public ResponseEntity<?> login(@RequestBody String json) {
+    System.out.println(json);
+    return new ResponseEntity<>(HttpStatus.OK);
   }
 }

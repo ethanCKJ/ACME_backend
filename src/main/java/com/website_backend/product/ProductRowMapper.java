@@ -1,11 +1,13 @@
-package com.website_backend;
+package com.website_backend.product;
 
-import com.website_backend.Data.ProductCategory;
-import com.website_backend.Data.ProductInfo;
+import com.website_backend.Data.enums.ProductCategory;
+import com.website_backend.Data.response.ProductInfo;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ProductRowMapper implements RowMapper<ProductInfo> {
 
   @Override
