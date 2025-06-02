@@ -1,6 +1,6 @@
 package com.website_backend.product;
 
-import com.website_backend.Data.response.ProductInfo;
+import com.website_backend.browse.ProductInfo;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;

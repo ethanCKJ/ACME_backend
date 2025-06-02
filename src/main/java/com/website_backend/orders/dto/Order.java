@@ -1,7 +1,7 @@
-package com.website_backend.Data;
+package com.website_backend.orders.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.website_backend.Data.enums.Shipping;
+import com.website_backend.orders.enums.Shipping;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 

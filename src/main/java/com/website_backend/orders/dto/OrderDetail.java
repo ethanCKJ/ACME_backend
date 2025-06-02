@@ -1,7 +1,7 @@
-package com.website_backend.Data;
+package com.website_backend.orders.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.website_backend.Data.enums.ProductCategory;
+import com.website_backend.orders.enums.ProductCategory;
 
 public class OrderDetail {
   @JsonProperty("productId")

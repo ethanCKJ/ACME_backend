@@ -1,7 +1,7 @@
-package com.website_backend.ordering;
+package com.website_backend.orders;
 
-import com.website_backend.Data.enums.ErrorCode;
-import com.website_backend.Data.Order;
+import com.website_backend.orders.enums.ErrorCode;
+import com.website_backend.orders.dto.Order;
 import org.springframework.stereotype.Service;
 
 @Service

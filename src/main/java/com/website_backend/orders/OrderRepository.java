@@ -1,11 +1,10 @@
-package com.website_backend.ordering;
+package com.website_backend.orders;
 
-import com.website_backend.Data.enums.ErrorCode;
-import com.website_backend.Data.Order;
-import com.website_backend.Data.OrderDetail;
+import com.website_backend.orders.enums.ErrorCode;
+import com.website_backend.orders.dto.Order;
+import com.website_backend.orders.dto.OrderDetail;
 import java.sql.Types;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.Map;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -76,6 +75,11 @@ public class OrderRepository {
     return ErrorCode.NO_ERROR;
   }
 
+  /**
+   * Save details of one product a customer ordered to the database
+   * Saves (:productId, :orderId, :quantity, :price, :discount)
+   * @param orderDetail
+   */
   private void saveOrderDetail(OrderDetail orderDetail){
     try {
       Map<String, Object> params = Map.of("productId", orderDetail.getProductId(),

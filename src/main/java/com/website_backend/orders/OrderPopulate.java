@@ -1,9 +1,9 @@
-package com.website_backend.ordering;
+package com.website_backend.orders;
 
-import com.website_backend.Data.enums.ErrorCode;
-import com.website_backend.Data.Order;
-import com.website_backend.Data.OrderDetail;
-import com.website_backend.Data.enums.ProductCategory;
+import com.website_backend.orders.enums.ErrorCode;
+import com.website_backend.orders.enums.ProductCategory;
+import com.website_backend.orders.dto.Order;
+import com.website_backend.orders.dto.OrderDetail;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -1,15 +1,19 @@
-package com.website_backend;
+package com.website_backend.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.ValidationMessage;
-import com.website_backend.Data.enums.ErrorCode;
-import com.website_backend.Data.Order;
-import com.website_backend.Data.response.ProductInfo;
-import com.website_backend.Data.response.OrderResponse;
-import com.website_backend.ordering.OrderService;
+import com.website_backend.orders.enums.ErrorCode;
+import com.website_backend.orders.dto.Order;
+import com.website_backend.account.dto.CustomerProfile;
+import com.website_backend.browse.ProductInfo;
+import com.website_backend.orders.dto.OrderResponse;
+import com.website_backend.account.dto.StaffProfile;
+import com.website_backend.account.CustomerRepository;
+import com.website_backend.account.StaffRepository;
+import com.website_backend.orders.OrderService;
 import com.website_backend.product.ProductRowMapper;
 import com.website_backend.product.ProductService;
 import java.time.format.DateTimeFormatter;
@@ -21,6 +25,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -39,16 +47,21 @@ public class Controller {
   private final ProductRowMapper productRowMapper = new ProductRowMapper();
   private final ObjectMapper objectMapper = new ObjectMapper();
   private final Logger log = LoggerFactory.getLogger(Controller.class);
+  private final CustomerRepository customerRepository;
 
   @Autowired
   JdbcTemplate jdbcTemplate;
 
   @Autowired
   JsonSchema orderSchema;
+  @Autowired
+  private StaffRepository staffAccountRepository;
 
-  public Controller(OrderService orderService, ProductService productService) {
+  public Controller(OrderService orderService, ProductService productService,
+      CustomerRepository customerRepository) {
     this.orderService = orderService;
     this.productService = productService;
+    this.customerRepository = customerRepository;
   }
 
   @GetMapping("/debug")
@@ -90,9 +103,37 @@ public class Controller {
     return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
   }
 
-  @PostMapping("/login")
-  public ResponseEntity<?> login(@RequestBody String json) {
-    System.out.println(json);
-    return new ResponseEntity<>(HttpStatus.OK);
+  @PreAuthorize("hasRole('CUSTOMER')")
+  @GetMapping("me/customer_profile_info")
+  public ResponseEntity<?> getCustomerProfileInfo (Authentication auth){
+    if (auth instanceof JwtAuthenticationToken){
+      Jwt jwt = ((JwtAuthenticationToken) auth).getToken();
+      Long customerId = jwt.getClaim("id");
+      try{
+        CustomerProfile response = customerRepository.loadCustomerByUsername(customerId.intValue());
+        return new ResponseEntity<>(response, HttpStatus.OK);
+      } catch (Exception e) {
+        return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+      }
+    }
+    return new ResponseEntity<>(HttpStatus.FORBIDDEN);
   }
+
+  @PreAuthorize("hasRole('STAFF')")
+  @GetMapping("me/staff_profile_info")
+  public ResponseEntity<?> getStaffProfileInfo (Authentication auth){
+    if (auth instanceof JwtAuthenticationToken){
+      Jwt jwt = ((JwtAuthenticationToken) auth).getToken();
+      Long staffId = jwt.getClaim("id");
+      try {
+        StaffProfile response = staffAccountRepository.getStaffProfile(staffId.intValue());
+        return new ResponseEntity<>(response, HttpStatus.OK);
+      } catch (Exception e) {
+        return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+      }
+    }
+    return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+  }
+
+
 }

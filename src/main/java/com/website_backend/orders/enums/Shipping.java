@@ -1,4 +1,4 @@
-package com.website_backend.Data.enums;
+package com.website_backend.orders.enums;
 
 public enum Shipping {
   FREE(0,10),
