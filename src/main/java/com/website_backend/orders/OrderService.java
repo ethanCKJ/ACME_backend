@@ -1,11 +1,14 @@
 package com.website_backend.orders;
 
+import com.website_backend.orders.dto.OrderSetState;
 import com.website_backend.orders.dto.StaffOrder;
 import com.website_backend.orders.enums.ErrorCode;
 import com.website_backend.orders.dto.Order;
 import com.website_backend.orders.enums.OrderState;
 import java.util.List;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class OrderService {
@@ -48,4 +51,17 @@ public class OrderService {
     return staffOrder;
   }
 
+  public void setOrderState(OrderSetState orderSetState) throws Exception {
+    try{
+      orderRepository.setOrderState(orderSetState.orderId(), orderSetState.newState());
+    } catch (Exception e) {
+      if (e.getLocalizedMessage().contains("not exist")){
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Order does not exist");
+      }
+      else {
+        throw new RuntimeException(e);
+      }
+    }
+
+  }
 }

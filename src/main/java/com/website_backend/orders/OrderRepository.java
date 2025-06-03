@@ -84,6 +84,26 @@ public class OrderRepository {
   }
 
   /**
+   * Sets order to new state e.g. from NOT_READY to READY_TO_SHIP and throws error if order
+   * does not exist or database error.
+   * @param orderId
+   * @param newState
+   */
+  public void setOrderState(int orderId, OrderState newState) throws Exception{
+    int numRows;
+    try {
+      numRows = namedParameterJdbcTemplate.update("UPDATE acme_db.orders SET orderState=:newState WHERE id=:id",
+          Map.of("id",orderId,"newState",newState.toString()));
+    } catch (DataAccessException e) {
+      throw new RuntimeException(e);
+    }
+    if (numRows != 1){
+      throw new RuntimeException("order does not exist");
+    }
+  }
+
+
+  /**
    * Save order and set orderId
    * @param order
    * @return

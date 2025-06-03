@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.ValidationMessage;
+import com.website_backend.orders.dto.OrderSetState;
 import com.website_backend.orders.dto.StaffOrder;
 import com.website_backend.orders.enums.ErrorCode;
 import com.website_backend.orders.dto.Order;
@@ -29,6 +30,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.parameters.P;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -142,6 +144,14 @@ public class Controller {
   public ResponseEntity<?> viewOrders(@RequestParam OrderState orderState){
     List<StaffOrder> staffOrders = orderService.viewOrder(orderState);
     return new ResponseEntity<>(staffOrders, HttpStatus.OK);
+  }
+
+  @PostMapping("/set_order_state")
+  public ResponseEntity<?> setOrderState(@RequestBody OrderSetState orderSetState)
+      throws Exception {
+    orderService.setOrderState(orderSetState);
+    return new ResponseEntity<>(HttpStatus.OK);
+
   }
 
 
