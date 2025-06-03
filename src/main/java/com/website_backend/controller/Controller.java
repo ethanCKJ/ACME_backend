@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.ValidationMessage;
+import com.website_backend.orders.dto.StaffOrder;
 import com.website_backend.orders.enums.ErrorCode;
 import com.website_backend.orders.dto.Order;
 import com.website_backend.account.dto.CustomerProfile;
@@ -14,6 +15,7 @@ import com.website_backend.account.dto.StaffProfile;
 import com.website_backend.account.CustomerRepository;
 import com.website_backend.account.StaffRepository;
 import com.website_backend.orders.OrderService;
+import com.website_backend.orders.enums.OrderState;
 import com.website_backend.product.ProductRowMapper;
 import com.website_backend.product.ProductService;
 import java.time.format.DateTimeFormatter;
@@ -133,6 +135,13 @@ public class Controller {
       }
     }
     return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+  }
+
+//  @PreAuthorize("hasRole('STAFF','ADMIN')")
+  @GetMapping("/view_orders")
+  public ResponseEntity<?> viewOrders(@RequestParam OrderState orderState){
+    List<StaffOrder> staffOrders = orderService.viewOrder(orderState);
+    return new ResponseEntity<>(staffOrders, HttpStatus.OK);
   }
 
 
