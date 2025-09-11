@@ -32,7 +32,7 @@ public class ProductService {
     try {
       productInfoList = jdbcTemplate.query("""
             SELECT * FROM acme_db.product
-            WHERE (is_discontinued=0) AND (price BETWEEN ? AND ?) AND (category=?) AND (stock >= 1)""",
+            WHERE (is_discontinued=0) AND (price BETWEEN ? AND ?) AND (category=?)""",
           rowMapper,
           minPrice, maxPrice, category);
     } catch (Exception e) {

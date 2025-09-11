@@ -89,7 +89,6 @@ public class Controller {
     try {
       jsonNode = objectMapper.readTree(json);
       Set<ValidationMessage> msg = orderSchema.validate(jsonNode);
-      System.out.println("msg" + msg);
       if (msg.isEmpty()) {
         Order order = objectMapper.treeToValue(jsonNode, Order.class);
         if (auth instanceof JwtAuthenticationToken) {
@@ -105,9 +104,9 @@ public class Controller {
               fmt.format(order.getRequiredDatetime()));
           return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (DatabaseException e) {
-          return new ResponseEntity<>(e.toString(),HttpStatus.INTERNAL_SERVER_ERROR);
+          return new ResponseEntity<>(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (ProductIdNotExistException | CustomerIdNotExistException | InsufficientStockException e){
-          return new ResponseEntity<>(e.toString(),HttpStatus.BAD_REQUEST);
+          return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
         }
       }
     } catch (JsonProcessingException e) {

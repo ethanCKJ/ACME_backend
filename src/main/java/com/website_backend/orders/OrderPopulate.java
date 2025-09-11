@@ -31,7 +31,7 @@ public class OrderPopulate {
    * @param order
    * @return
    */
-  public void populateRegisteredCustomerInfo(Order order) {
+  public void populateRegisteredCustomerInfo(Order order) throws CustomerIdNotExistException {
     MapSqlParameterSource params = new MapSqlParameterSource();
     params.addValue("id", order.getCustomerId());
     List<Map<String, Object>> resultList = namedParameterJdbcTemplate.queryForList(

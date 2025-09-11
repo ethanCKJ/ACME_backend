@@ -36,7 +36,6 @@ public class TokenService {
     String roles = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority)
         .collect(
             Collectors.joining(" "));
-    System.out.println(roles);
     int expireMinutes = 30;
     if (roles.contains("ADMIN") || roles.contains("STAFF")){
       expireMinutes = 300;

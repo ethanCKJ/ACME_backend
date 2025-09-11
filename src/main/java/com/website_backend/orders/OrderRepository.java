@@ -69,7 +69,6 @@ public class OrderRepository {
                 row.getString(4)
         ) ));
       }
-      System.out.println(staffOrderDetailList);
       return staffOrderDetailList;
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -153,7 +152,7 @@ public class OrderRepository {
    * Saves (:productId, :orderId, :quantity, :price, :discount)
    * @param orderDetail
    */
-  private void saveOrderDetail(OrderDetail orderDetail){
+  private void saveOrderDetail(OrderDetail orderDetail) throws DatabaseException {
     try {
       Map<String, Object> params = Map.of("productId", orderDetail.getProductId(),
           "orderId", orderDetail.getOrderId(),
@@ -165,7 +164,7 @@ public class OrderRepository {
           + " VALUES (:productId, :orderId, :quantity, :price, :discount)",
           params);
     } catch (Exception e) {
-      System.out.println("ERROR: saving " + orderDetail + " failed somehow " + e.getLocalizedMessage());
+      throw new DatabaseException("ERROR: saving" + orderDetail + " failed somehow " + e.getLocalizedMessage());
     }
   }
 
@@ -186,6 +185,21 @@ public class OrderRepository {
       return stock;
     }
     return 0;
+  }
+
+  /**
+   * Decrements stock of a product
+   * @param productId
+   * @param decrementAmount
+   * @throws DatabaseException
+   */
+  public void decrementStock(int productId, int decrementAmount) throws DatabaseException {
+    try {
+      Map<String, Object> params = Map.of("productId", productId, "decrement", decrementAmount);
+      namedParameterJdbcTemplate.update("UPDATE acme_db.product SET stock = IF(stock >= :decrement, stock - :decrement, 0)", params);
+    } catch (Exception e) {
+      throw new DatabaseException(e.getMessage());
+    }
   }
 
 }

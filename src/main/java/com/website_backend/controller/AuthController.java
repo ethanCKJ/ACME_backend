@@ -62,7 +62,6 @@ public class AuthController {
     try {
       Authentication auth = authManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.username(), loginRequest.password()));
       String token = tokenService.generateToken(auth);
-      System.out.println(token);
       return new ResponseEntity<>(token, HttpStatus.OK);
     } catch (Exception e) {
       return new ResponseEntity<>("error: invalid credentials",HttpStatus.FORBIDDEN);
