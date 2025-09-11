@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Generated schema for Root",
+  "type": "object",
+  "properties": {
+    "products": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "number"
+          },
+          "quantity": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "productId",
+          "quantity"
+        ]
+      }
+    },
+    "customerId": {
+      "type": ["number","null"]
+    },
+    "customerName": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "addressLine1": {
+      "type": "string"
+    },
+    "addressLine2": {
+      "type": "string"
+    },
+    "addressLine3": {
+      "type": "string"
+    },
+    "postcode": {
+      "type": "string"
+    },
+    "shipping": {
+      "enum": ["FREE", "PREMIUM", "STANDARD"]
+    }
+  },
+  "required": [
+    "orderDetails",
+    "customerId",
+    "customerName",
+    "email",
+    "phone",
+    "addressLine1",
+    "addressLine2",
+    "addressLine3",
+    "postcode",
+    "shipping"
+  ]
+}

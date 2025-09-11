@@ -1,12 +1,12 @@
 package com.website_backend.orders;
 
-import com.website_backend.orders.dto.StaffOrder;
-import com.website_backend.orders.dto.StaffOrderDetail;
-import com.website_backend.orders.enums.ErrorCode;
 import com.website_backend.orders.dto.Order;
 import com.website_backend.orders.dto.OrderDetail;
+import com.website_backend.orders.dto.StaffOrder;
+import com.website_backend.orders.dto.StaffOrderDetail;
 import com.website_backend.orders.enums.OrderState;
 import com.website_backend.orders.enums.ProductCategory;
+import com.website_backend.orders.errors.DatabaseException;
 import java.sql.Date;
 import java.sql.Types;
 import java.time.format.DateTimeFormatter;
@@ -28,21 +28,14 @@ public class OrderRepository {
   public OrderRepository(NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
     this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
   }
-
   public List<StaffOrder> loadStaffOrders(OrderState orderState) {
-    // Get order details
-//    List<StaffOrderDetail> staffOrderDetailList = namedParameterJdbcTemplate.query("SELECT product_id, quantity FROM acme_db.order_details WHERE order_id IN (SELECT id FROM acme_db.orders WHERE orderState=:orderState)", Map.of("orderState", orderState),
-//        (rs, rowNum) -> {
-//          St
-//        });
-    // Enums require explicit toString or else 'unable to convert binary to string' error.
 
     try{
       List<StaffOrder> staffOrderDetailList = namedParameterJdbcTemplate.query("SELECT id, customer_name, email, phone,"
               + " address_line1, address_line2, address_line3, postcode, city,"
               + " requiredDate, dispatchDatetime "
               + "FROM acme_db.orders "
-              + "WHERE orderState=:orderState ORDER BY requiredDate ASC",
+              + "WHERE orderState=:orderState ORDER BY requiredDate, id ASC",
           Map.of("orderState", orderState.toString()),
           (row, rs) -> {
         Date requiredDate = row.getDate(11);
@@ -108,7 +101,7 @@ public class OrderRepository {
    * @param order
    * @return
    */
-  public ErrorCode saveOrder(Order order){
+  public void saveOrder(Order order) throws DatabaseException {
     int paymentAmount = 0;
     for (OrderDetail orderDetail : order.getOrderDetails()){
       paymentAmount += orderDetail.getPrice() * orderDetail.getQuantity();
@@ -140,8 +133,7 @@ public class OrderRepository {
           new String[] {"id"}
           );
     } catch (DataAccessException e) {
-      System.out.println(e.getLocalizedMessage());
-      return ErrorCode.DATABASE_ERROR;
+      throw new DatabaseException(e.getMessage());
     }
 
     Number newId = keyHolder.getKey();
@@ -154,7 +146,6 @@ public class OrderRepository {
       orderDetail.setOrderId(order.getOrderId());
       saveOrderDetail(orderDetail);
     }
-    return ErrorCode.NO_ERROR;
   }
 
   /**
@@ -177,4 +168,24 @@ public class OrderRepository {
       System.out.println("ERROR: saving " + orderDetail + " failed somehow " + e.getLocalizedMessage());
     }
   }
+
+  /**
+   * Returns stock level of a product
+   * @param productId
+   * @return
+   */
+  public int getStock(int productId) throws DatabaseException {
+    Integer stock;
+    try {
+      Map<String, Object> params = Map.of("productId",productId);
+      stock = namedParameterJdbcTemplate.queryForObject("SELECT stock FROM acme_db.product WHERE id=:productId", params, Integer.class);
+    } catch (Exception e) {
+      throw new DatabaseException(e.getMessage());
+    }
+    if (stock != null){
+      return stock;
+    }
+    return 0;
+  }
+
 }

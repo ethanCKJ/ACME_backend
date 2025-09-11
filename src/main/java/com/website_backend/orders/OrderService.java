@@ -1,10 +1,12 @@
 package com.website_backend.orders;
 
+import com.website_backend.orders.dto.Order;
+import com.website_backend.orders.dto.OrderDetail;
 import com.website_backend.orders.dto.OrderSetState;
 import com.website_backend.orders.dto.StaffOrder;
-import com.website_backend.orders.enums.ErrorCode;
-import com.website_backend.orders.dto.Order;
 import com.website_backend.orders.enums.OrderState;
+import com.website_backend.orders.errors.DatabaseException;
+import com.website_backend.orders.errors.InsufficientStockException;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -27,23 +29,24 @@ public class OrderService {
    * @param order
    * @return
    */
-  public ErrorCode handleOrder(Order order) {
-    ErrorCode errorCode;
-    if (order.getCustomerId() != null) {
-      errorCode = orderPopulate.populateRegisteredCustomerInfo(order);
-      if (errorCode != ErrorCode.NO_ERROR) {
-        return errorCode;
+  public void handleOrder(Order order) throws DatabaseException, InsufficientStockException {
+    // Throw exception if any product in the order has insufficient stock.
+    for (OrderDetail orderDetail : order.getOrderDetails()){
+      int stock = orderRepository.getStock(orderDetail.getProductId());
+      if (stock < orderDetail.getQuantity()){
+        throw new InsufficientStockException("Insufficient stock level of %d units of '%s', productId '%d' to satisfy order".formatted(stock, orderDetail.getProductName(), orderDetail.getProductId()));
       }
     }
-    errorCode = orderPopulate.populateOrderDetails(order);
-    if (errorCode != ErrorCode.NO_ERROR) {
-      return errorCode;
+
+
+    if (order.getCustomerId() != null) {
+      orderPopulate.populateRegisteredCustomerInfo(order);
     }
+    orderPopulate.populateOrderDetails(order);
 
     orderPopulate.populateRequiredDate(order);
-    errorCode = orderRepository.saveOrder(order);
+    orderRepository.saveOrder(order);
 
-    return errorCode;
   }
 
   public List<StaffOrder> viewOrder(OrderState orderState){
@@ -62,6 +65,7 @@ public class OrderService {
         throw new RuntimeException(e);
       }
     }
-
   }
+
+
 }

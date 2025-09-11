@@ -2,6 +2,7 @@ package com.website_backend.account.dto;
 
 /**
  * Customer information loaded from database to autofill the order submission form
+ * Note email can be acquired from the "sub" field of the JWT token
  * @param customerName
  * @param addressLine1
  * @param addressLine2

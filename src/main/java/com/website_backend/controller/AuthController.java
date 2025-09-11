@@ -1,6 +1,8 @@
 package com.website_backend.controller;
 
+import com.website_backend.account.CustomerService;
 import com.website_backend.account.dto.LoginRequest;
+import com.website_backend.account.dto.SignupCustomerDetails;
 import com.website_backend.account.dto.SignupStaffDetails;
 import com.website_backend.account.dto.SignupResponse;
 import com.website_backend.account.StaffService;
@@ -24,40 +26,35 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
   private final StaffService staffService;
+  private final CustomerService customerService;
   private final AuthenticationManager authManager;
   private final TokenService tokenService;
 
   public AuthController(StaffService staffService, AuthenticationManager authManager,
-      TokenService tokenService, JwtDecoder jwtDecoder) {
+      TokenService tokenService, JwtDecoder jwtDecoder, CustomerService customerService) {
     this.staffService = staffService;
     this.authManager = authManager;
     this.tokenService = tokenService;
+    this.customerService = customerService;
   }
 
   @PostMapping("/signup/staff")
-  public ResponseEntity<SignupResponse> signup (@RequestBody SignupStaffDetails newStaffInfo){
-    String errorMsg = staffService.createStaff(newStaffInfo);
-    if (errorMsg.isEmpty()){
-      return new ResponseEntity<>(new SignupResponse("success", ""), HttpStatus.OK);
-    }
-    else{
-      return new ResponseEntity<>(new SignupResponse("error",errorMsg), HttpStatus.BAD_REQUEST);
-    }
+  public ResponseEntity<SignupResponse> signupStaff (@RequestBody SignupStaffDetails newStaffInfo){
+    staffService.createStaff(newStaffInfo);
+    return new ResponseEntity<>(new SignupResponse("success", ""), HttpStatus.OK);
   }
 
-//  @PostMapping("/signup/customer")
-//  public ResponseEntity<SignupResponse> signup (@RequestBody CustomerProfile customerProfile){
-//    String errorMsg = staffService.createStaff(newStaffInfo);
-//    if (errorMsg.isEmpty()){
-//      return new ResponseEntity<>(new SignupResponse("success", ""), HttpStatus.OK);
-//    }
-//    else{
-//      return new ResponseEntity<>(new SignupResponse("error",errorMsg), HttpStatus.BAD_REQUEST);
-//    }
-//  }
+  @PostMapping("/signup/admin")
+  public ResponseEntity<SignupResponse> signupAdmin (@RequestBody SignupStaffDetails newAdminInfo){
+    staffService.createAdmin(newAdminInfo);
+    return new ResponseEntity<>(new SignupResponse("success",""), HttpStatus.OK);
+  }
 
-  // TODO: Handle adding new customers.
-
+  @PostMapping("/signup/customer")
+  public ResponseEntity<SignupResponse> signupCustomer (@RequestBody SignupCustomerDetails newCustomerInfo){
+    customerService.saveCustomer(newCustomerInfo);
+    return new ResponseEntity<>(new SignupResponse("success", ""), HttpStatus.OK);
+  }
 
   // username s@gmail.com password: password
   @PostMapping("/token")
@@ -80,14 +77,11 @@ public class AuthController {
   @GetMapping("/debug_jwt")
   public ResponseEntity<?> debugJwt(Authentication auth){
     System.out.println("Debug JWT");
-//    String token = "eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJzZWxmIiwic3ViIjoic0BnbWFpbC5jb20iLCJpZCI6MSwiZXhwIjoxNzQ4ODA1NDE2LCJpYXQiOjE3NDg3ODc0MTYsInNjb3BlIjoiUk9MRV9TVEFGRiJ9.v4lmveZDhSAumF53S51xr1_u9fSda4ptUU8l4ch7fSovnGVIPYIcTdQG6yICn2T2JnVXoYyQHbcCe1Q4GnLkk_GX9-t-ms_LfQZVpks5Mh_AngoV7kgcR9FkXaYKIk0IyL4lFiXiGCfcq8jcEhfP3RVCPQQLhFZYpE_3fZQC6aQlehlwgnfkBc2UMuUZxKp_P9h6O3ec948UaKa2lkqz7bIVIPgaUGwcCHSeRoX9VrYEwwdBmgp4X9eBWlRAWSfQeLuD654saIycOAPoEqwDgR7gHQuTd8sQC045DYG3Fg5Sj-AiDIX-8Sk8lTnmwiaqqUn9FXmHTWv6lFxyWw9m8A";
-//    Jwt jwt1 = jwtDecoder.decode(token);
-//    System.out.println(jwt1);
     Long id = -1L;
     if (auth instanceof JwtAuthenticationToken){
       Jwt jwt = ((JwtAuthenticationToken) auth).getToken();
       id = jwt.getClaim("id");
-      return new ResponseEntity<>("Hello " + auth.getName() + "id " + id, HttpStatus.OK);
+      return new ResponseEntity<>("Hello " + auth.getName() + " id " + id, HttpStatus.OK);
     }
     else{
       // If an empty token is sent no problems.

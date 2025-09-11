@@ -1,11 +1,14 @@
 package com.website_backend.account;
 
 import com.website_backend.account.dto.SignupStaffDetails;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class StaffService {
@@ -21,7 +24,7 @@ public class StaffService {
     this.staffAccountRepository = staffAccountRepository;
   }
 
-  public String createStaff(SignupStaffDetails staffInfo){
+  public void createStaff(SignupStaffDetails staffInfo) {
     UserDetails userDetails = User
         .builder()
         .username(staffInfo.username())
@@ -30,14 +33,32 @@ public class StaffService {
         .build();
     try {
       jdbcUserDetailsManager.createUser(userDetails);
-      staffAccountRepository.saveStaff(staffInfo);
+      staffAccountRepository.saveStaffProfile(staffInfo);
+    } catch (DuplicateKeyException e) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          "An account with that username already exists");
     } catch (Exception e) {
-      if (e.getLocalizedMessage().contains("Duplicate entry")){
-        return "An account with that email already exists";
-      }
-      return "Server error";
+      throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+          "Unable to save new user");
     }
-    return "";
   }
 
+  public void createAdmin(SignupStaffDetails adminInfo) {
+    UserDetails userDetails = User
+        .builder()
+        .username(adminInfo.username())
+        .password(encoder.encode(adminInfo.password()))
+        .roles("ADMIN")
+        .build();
+    try {
+      jdbcUserDetailsManager.createUser(userDetails);
+      staffAccountRepository.saveStaffProfile(adminInfo);
+    } catch (DuplicateKeyException e) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          "An account with that username already exists");
+    } catch (Exception e) {
+      throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+          "Unable to save new user");
+    }
+  }
 }

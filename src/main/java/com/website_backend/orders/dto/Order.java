@@ -53,7 +53,7 @@ public class Order {
    * The partial constructor is for deserializing an order then populating price, shipping dates
    * from the database.
    * @param customerId null if customer checked out as guest
-   * @param customerName - if customerId is not null we get customerName, email, addressLine(1-3), city, phone from the database
+   * @param customerName - if customerId is not null we get customerName, username, addressLine(1-3), city, phone from the database
    * @param email
    * @param addressLine1
    * @param addressLine2
@@ -83,7 +83,7 @@ public class Order {
    * @param orderDetails details for each product the customer ordered
    * @param orderId
    * @param customerId null if customer checked out as guest
-   * @param customerName - if customerId is not null we get customerName, email, addressLine(1-3), city, phone from the database
+   * @param customerName - if customerId is not null we get customerName, username, addressLine(1-3), city, phone from the database
    * @param email
    * @param addressLine1
    * @param addressLine2
@@ -242,7 +242,7 @@ public class Order {
         ", orderId=" + orderId +
         ", customerId=" + customerId +
         ", customerName='" + customerName + '\'' +
-        ", email='" + email + '\'' +
+        ", username='" + email + '\'' +
         ", addressLine1='" + addressLine1 + '\'' +
         ", addressLine2='" + addressLine2 + '\'' +
         ", addressLine3='" + addressLine3 + '\'' +

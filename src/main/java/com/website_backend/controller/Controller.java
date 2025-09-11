@@ -5,18 +5,21 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.ValidationMessage;
-import com.website_backend.orders.dto.OrderSetState;
-import com.website_backend.orders.dto.StaffOrder;
-import com.website_backend.orders.enums.ErrorCode;
-import com.website_backend.orders.dto.Order;
-import com.website_backend.account.dto.CustomerProfile;
-import com.website_backend.browse.ProductInfo;
-import com.website_backend.orders.dto.OrderResponse;
-import com.website_backend.account.dto.StaffProfile;
 import com.website_backend.account.CustomerRepository;
 import com.website_backend.account.StaffRepository;
+import com.website_backend.account.dto.CustomerProfile;
+import com.website_backend.account.dto.StaffProfile;
+import com.website_backend.browse.ProductInfo;
 import com.website_backend.orders.OrderService;
+import com.website_backend.orders.dto.Order;
+import com.website_backend.orders.dto.OrderResponse;
+import com.website_backend.orders.dto.OrderSetState;
+import com.website_backend.orders.dto.StaffOrder;
 import com.website_backend.orders.enums.OrderState;
+import com.website_backend.orders.errors.CustomerIdNotExistException;
+import com.website_backend.orders.errors.DatabaseException;
+import com.website_backend.orders.errors.InsufficientStockException;
+import com.website_backend.orders.errors.ProductIdNotExistException;
 import com.website_backend.product.ProductRowMapper;
 import com.website_backend.product.ProductService;
 import java.time.format.DateTimeFormatter;
@@ -30,7 +33,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.parameters.P;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -82,7 +84,7 @@ public class Controller {
   }
 
   @PostMapping("/order")
-  public ResponseEntity<?> placeOrder(@RequestBody String json) {
+  public ResponseEntity<?> placeOrder(@RequestBody String json, Authentication auth) {
     JsonNode jsonNode;
     try {
       jsonNode = objectMapper.readTree(json);
@@ -90,17 +92,24 @@ public class Controller {
       System.out.println("msg" + msg);
       if (msg.isEmpty()) {
         Order order = objectMapper.treeToValue(jsonNode, Order.class);
-        System.out.println(order);
-        ErrorCode errorCode = orderService.handleOrder(order);
-        if (errorCode == ErrorCode.NO_ERROR) {
+        if (auth instanceof JwtAuthenticationToken) {
+          Jwt jwt = ((JwtAuthenticationToken) auth).getToken();
+          Long customerId = jwt.getClaim("id");
+          order.setCustomerId(customerId.intValue());
+          order.setEmail(jwt.getSubject());
+        }
+        try {
+          orderService.handleOrder(order);
           OrderResponse response = new OrderResponse(order.getOrderId(),
               order.getEmail(),
               fmt.format(order.getRequiredDatetime()));
           return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (DatabaseException e) {
+          return new ResponseEntity<>(e.toString(),HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (ProductIdNotExistException | CustomerIdNotExistException | InsufficientStockException e){
+          return new ResponseEntity<>(e.toString(),HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
       }
-      System.out.println(msg);
     } catch (JsonProcessingException e) {
       throw new RuntimeException(e);
     }
@@ -109,11 +118,11 @@ public class Controller {
 
   @PreAuthorize("hasRole('CUSTOMER')")
   @GetMapping("me/customer_profile_info")
-  public ResponseEntity<?> getCustomerProfileInfo (Authentication auth){
-    if (auth instanceof JwtAuthenticationToken){
+  public ResponseEntity<?> getCustomerProfileInfo(Authentication auth) {
+    if (auth instanceof JwtAuthenticationToken) {
       Jwt jwt = ((JwtAuthenticationToken) auth).getToken();
       Long customerId = jwt.getClaim("id");
-      try{
+      try {
         CustomerProfile response = customerRepository.loadCustomerByUsername(customerId.intValue());
         return new ResponseEntity<>(response, HttpStatus.OK);
       } catch (Exception e) {
@@ -125,8 +134,8 @@ public class Controller {
 
   @PreAuthorize("hasRole('STAFF')")
   @GetMapping("me/staff_profile_info")
-  public ResponseEntity<?> getStaffProfileInfo (Authentication auth){
-    if (auth instanceof JwtAuthenticationToken){
+  public ResponseEntity<?> getStaffProfileInfo(Authentication auth) {
+    if (auth instanceof JwtAuthenticationToken) {
       Jwt jwt = ((JwtAuthenticationToken) auth).getToken();
       Long staffId = jwt.getClaim("id");
       try {
@@ -139,9 +148,9 @@ public class Controller {
     return new ResponseEntity<>(HttpStatus.FORBIDDEN);
   }
 
-//  @PreAuthorize("hasRole('STAFF','ADMIN')")
+  //  @PreAuthorize("hasRole('STAFF','ADMIN')")
   @GetMapping("/view_orders")
-  public ResponseEntity<?> viewOrders(@RequestParam OrderState orderState){
+  public ResponseEntity<?> viewOrders(@RequestParam OrderState orderState) {
     List<StaffOrder> staffOrders = orderService.viewOrder(orderState);
     return new ResponseEntity<>(staffOrders, HttpStatus.OK);
   }
@@ -151,8 +160,5 @@ public class Controller {
       throws Exception {
     orderService.setOrderState(orderSetState);
     return new ResponseEntity<>(HttpStatus.OK);
-
   }
-
-
 }

@@ -15,7 +15,7 @@ public class StaffRepository {
     this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
   }
 
-  public void saveStaff(SignupStaffDetails staffInfo){
+  public void saveStaffProfile(SignupStaffDetails staffInfo){
     try {
       int staffId =  namedParameterJdbcTemplate.queryForObject("SELECT id FROM acme_db.users WHERE username=:username ", Map.of("username",staffInfo.username()), Integer.class);
       namedParameterJdbcTemplate.update("INSERT INTO acme_db.staff(id, staff_name) VALUES (:id, :staff_name)",
@@ -25,6 +25,7 @@ public class StaffRepository {
       throw new RuntimeException(e);
     }
   }
+
 
   /**
    * Loads staff profile information (staffName) from database

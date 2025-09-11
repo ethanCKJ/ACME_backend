@@ -1,16 +1,17 @@
 package com.website_backend.orders;
 
-import com.website_backend.orders.enums.ErrorCode;
-import com.website_backend.orders.enums.ProductCategory;
 import com.website_backend.orders.dto.Order;
 import com.website_backend.orders.dto.OrderDetail;
+import com.website_backend.orders.enums.ProductCategory;
+import com.website_backend.orders.errors.CustomerIdNotExistException;
+import com.website_backend.orders.errors.DatabaseException;
+import com.website_backend.orders.errors.ProductIdNotExistException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -19,28 +20,22 @@ import org.springframework.stereotype.Component;
 public class OrderPopulate {
 
   private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
-  private final JdbcTemplate jdbcTemplate;
 
-  public OrderPopulate(NamedParameterJdbcTemplate namedParameterJdbcTemplate,
-      JdbcTemplate jdbcTemplate) {
+  public OrderPopulate(NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
     this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
-    this.jdbcTemplate = jdbcTemplate;
   }
 
   /**
-   * If customerId exists, populate the customerName, email, addressLine(1-3), city, phone, postcode
-   * If successful return ErrorCode.NO_ERROR If unable to populate return
-   * ErrorCode.CUSTOMER_ID_NOT_EXIST
+   * If customerId exists, populate the customerName, username, addressLine(1-3), city, phone, postcode
    *
    * @param order
    * @return
    */
-  public ErrorCode populateRegisteredCustomerInfo(Order order) {
+  public void populateRegisteredCustomerInfo(Order order) {
     MapSqlParameterSource params = new MapSqlParameterSource();
     params.addValue("id", order.getCustomerId());
     List<Map<String, Object>> resultList = namedParameterJdbcTemplate.queryForList(
         "SELECT customer_name,"
-            + " email,"
             + " address_line1,"
             + " address_line2,"
             + " address_line3, "
@@ -50,18 +45,16 @@ public class OrderPopulate {
         params);
 
     if (resultList.isEmpty()) {
-      return ErrorCode.CUSTOMER_ID_NOT_EXIST;
+      throw new CustomerIdNotExistException("Customer id %d does not exist".formatted(order.getCustomerId()));
     }
     Map<String, Object> result = resultList.get(0);
     order.setCustomerName((String) result.get("customer_name"));
-    order.setEmail((String) result.get("email"));
     order.setAddressLine1((String) result.get("address_line1"));
     order.setAddressLine2((String) result.get("address_line2"));
     order.setAddressLine3((String) result.get("address_line3"));
     order.setCity((String) result.get("city"));
     order.setPhone((String) result.get("phone"));
     order.setPostcode((String) result.get("postcode"));
-    return ErrorCode.NO_ERROR;
   }
 
   /**
@@ -71,7 +64,7 @@ public class OrderPopulate {
    * @return DATABASE_ERROR for database errors. PRODUCT_ID_NOT_EXIST if id does not exist and
    * INSUFFICIENT_STOCK if insufficient stock found
    */
-  public ErrorCode populateOrderDetails(Order order) {
+  public void populateOrderDetails(Order order) throws DatabaseException {
     Map<Integer, Integer> productIdToIndex = new HashMap<>();
     List<Integer> productIds = new ArrayList<>();
     for (int i = 0; i < order.getOrderDetails().length; i++) {
@@ -86,23 +79,20 @@ public class OrderPopulate {
           "SELECT id, price, stock, category, product_name FROM acme_db.product WHERE id IN (:productIds) AND is_discontinued=FALSE",
           params);
     } catch (DataAccessException e) {
-      return ErrorCode.DATABASE_ERROR;
+      throw new DatabaseException(e.getMessage());
     }
     if (resultList.size() < productIdToIndex.size()) {
-      return ErrorCode.PRODUCT_ID_NOT_EXIST;
+      throw new ProductIdNotExistException("One of the products does not exist");
     }
-    // Check if product out of stock. If not, populate price.
+    // Populate prices of the order.
     for (Map<String, Object> row : resultList) {
       int productId = (int) row.get("id");
       OrderDetail orderDetail = order.getOrderDetails()[productIdToIndex.get(productId)];
-      if (orderDetail.getQuantity() > (int) row.get("stock")) {
-        return ErrorCode.INSUFFICIENT_STOCK;
-      }
+
       orderDetail.setPrice((int) row.get("price"));
       orderDetail.setCategory(ProductCategory.valueOf((String) row.get("category")));
       orderDetail.setProductName((String) row.get("product_name"));
     }
-    return ErrorCode.NO_ERROR;
   }
 
   /**

@@ -194,7 +194,7 @@ public class StaffOrder {
     return "StaffOrder[" +
         "orderId=" + orderId + ", " +
         "customerName=" + customerName + ", " +
-        "email=" + email + ", " +
+        "username=" + email + ", " +
         "phone=" + phone + ", " +
         "addressLine1=" + addressLine1 + ", " +
         "addressLine2=" + addressLine2 + ", " +
