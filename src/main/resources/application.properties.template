@@ -1,0 +1,8 @@
+spring.application.name=website_backend
+spring.datasource.url=${ACME_DATASOURCE_URL}
+spring.datasource.username=${ACME_DB_USERNAME}
+spring.datasource.password=${ACME_DB_PASSWORD}
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
+rsa.public-key=classpath:certs/public.pem
+rsa.private-key=classpath:certs/private.pem
+spring.application.cors.allowed-origins=${ACME_ALLOWED_ORIGINS}
