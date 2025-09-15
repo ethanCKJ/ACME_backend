@@ -1,6 +1,6 @@
-package com.website_backend.account;
+package com.website_backend.user;
 
-import com.website_backend.account.dto.SignupStaffDetails;
+import com.website_backend.user.dto.SignupStaffDetails;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.User;
@@ -24,6 +24,10 @@ public class StaffService {
     this.staffAccountRepository = staffAccountRepository;
   }
 
+  /**
+   * Creates user with STAFF role
+   * @param staffInfo
+   */
   public void createStaff(SignupStaffDetails staffInfo) {
     UserDetails userDetails = User
         .builder()
@@ -43,6 +47,10 @@ public class StaffService {
     }
   }
 
+  /**
+   * Creates user with ADMIN role
+   * @param adminInfo
+   */
   public void createAdmin(SignupStaffDetails adminInfo) {
     UserDetails userDetails = User
         .builder()

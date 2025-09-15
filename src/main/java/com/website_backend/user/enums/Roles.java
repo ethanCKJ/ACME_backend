@@ -1,4 +1,4 @@
-package com.website_backend.account.enums;
+package com.website_backend.user.enums;
 
 public enum Roles {
   STAFF,

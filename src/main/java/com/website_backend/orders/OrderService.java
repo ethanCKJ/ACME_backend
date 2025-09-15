@@ -6,7 +6,7 @@ import com.website_backend.orders.dto.OrderSetState;
 import com.website_backend.orders.dto.StaffOrder;
 import com.website_backend.orders.enums.OrderState;
 import com.website_backend.orders.errors.CustomerIdNotExistException;
-import com.website_backend.orders.errors.DatabaseException;
+import com.website_backend.errors.DatabaseException;
 import com.website_backend.orders.errors.InsufficientStockException;
 import java.util.List;
 import org.springframework.http.HttpStatus;

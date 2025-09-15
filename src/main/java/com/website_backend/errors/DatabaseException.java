@@ -1,4 +1,4 @@
-package com.website_backend.orders.errors;
+package com.website_backend.errors;
 
 /**
  * Any errors from accessing the database

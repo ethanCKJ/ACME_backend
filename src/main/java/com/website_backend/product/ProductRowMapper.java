@@ -1,7 +1,6 @@
 package com.website_backend.product;
 
 import com.website_backend.orders.enums.ProductCategory;
-import com.website_backend.browse.ProductInfo;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.springframework.jdbc.core.RowMapper;

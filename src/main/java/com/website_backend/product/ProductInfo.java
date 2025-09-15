@@ -1,4 +1,4 @@
-package com.website_backend.browse;
+package com.website_backend.product;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.website_backend.orders.enums.ProductCategory;
@@ -17,10 +17,6 @@ public class ProductInfo {
 
   public ProductInfo() {
 
-  }
-
-  public String getProductInfo() {
-    return productInfo;
   }
 
   public void setProductInfo(String productInfo) {

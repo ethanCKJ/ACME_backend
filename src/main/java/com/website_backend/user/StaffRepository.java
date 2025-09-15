@@ -1,7 +1,7 @@
-package com.website_backend.account;
+package com.website_backend.user;
 
-import com.website_backend.account.dto.SignupStaffDetails;
-import com.website_backend.account.dto.StaffProfile;
+import com.website_backend.user.dto.SignupStaffDetails;
+import com.website_backend.user.dto.StaffProfile;
 import java.util.Map;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -15,6 +15,10 @@ public class StaffRepository {
     this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
   }
 
+  /**
+   * Save staff profile information. Does not save staff login details.
+   * @param staffInfo
+   */
   public void saveStaffProfile(SignupStaffDetails staffInfo){
     try {
       int staffId =  namedParameterJdbcTemplate.queryForObject("SELECT id FROM acme_db.users WHERE username=:username ", Map.of("username",staffInfo.username()), Integer.class);

@@ -5,11 +5,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.ValidationMessage;
-import com.website_backend.account.CustomerRepository;
-import com.website_backend.account.StaffRepository;
-import com.website_backend.account.dto.CustomerProfile;
-import com.website_backend.account.dto.StaffProfile;
-import com.website_backend.browse.ProductInfo;
+import com.website_backend.product.ProductInfo;
+import com.website_backend.errors.DatabaseException;
 import com.website_backend.orders.OrderService;
 import com.website_backend.orders.dto.Order;
 import com.website_backend.orders.dto.OrderResponse;
@@ -17,16 +14,16 @@ import com.website_backend.orders.dto.OrderSetState;
 import com.website_backend.orders.dto.StaffOrder;
 import com.website_backend.orders.enums.OrderState;
 import com.website_backend.orders.errors.CustomerIdNotExistException;
-import com.website_backend.orders.errors.DatabaseException;
 import com.website_backend.orders.errors.InsufficientStockException;
 import com.website_backend.orders.errors.ProductIdNotExistException;
-import com.website_backend.product.ProductRowMapper;
 import com.website_backend.product.ProductService;
+import com.website_backend.user.CustomerRepository;
+import com.website_backend.user.StaffRepository;
+import com.website_backend.user.dto.CustomerProfile;
+import com.website_backend.user.dto.StaffProfile;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -43,16 +40,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@CrossOrigin(originPatterns = "http://localhost:*", maxAge = 3600)
+/**
+ * Controller for all functions except getting tokens and signing up customers / staff
+ */
 @RestController
 public class Controller {
 
   private final OrderService orderService;
   private final ProductService productService;
   private final DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-  private final ProductRowMapper productRowMapper = new ProductRowMapper();
   private final ObjectMapper objectMapper = new ObjectMapper();
-  private final Logger log = LoggerFactory.getLogger(Controller.class);
   private final CustomerRepository customerRepository;
 
   @Autowired
@@ -70,12 +67,13 @@ public class Controller {
     this.customerRepository = customerRepository;
   }
 
-  @GetMapping("/debug")
-  public ResponseEntity<?> getDebug() {
-    System.out.println(jdbcTemplate.queryForList("SELECT * FROM product"));
-    return new ResponseEntity<>(HttpStatus.OK);
-  }
-
+  /**
+   * Get product details of all products in a particular category and within minPrice and maxPrice (inclusive)
+   * @param category
+   * @param minPrice
+   * @param maxPrice
+   * @return
+   */
   @GetMapping("/products/{category}")
   public ResponseEntity<?> getProducts(@PathVariable String category, @RequestParam int minPrice,
       @RequestParam int maxPrice) {

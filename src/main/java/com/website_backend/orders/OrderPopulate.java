@@ -4,7 +4,7 @@ import com.website_backend.orders.dto.Order;
 import com.website_backend.orders.dto.OrderDetail;
 import com.website_backend.orders.enums.ProductCategory;
 import com.website_backend.orders.errors.CustomerIdNotExistException;
-import com.website_backend.orders.errors.DatabaseException;
+import com.website_backend.errors.DatabaseException;
 import com.website_backend.orders.errors.ProductIdNotExistException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;

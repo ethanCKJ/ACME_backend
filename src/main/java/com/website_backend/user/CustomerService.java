@@ -1,6 +1,8 @@
-package com.website_backend.account;
+package com.website_backend.user;
 
-import com.website_backend.account.dto.SignupCustomerDetails;
+import com.website_backend.errors.DatabaseException;
+import com.website_backend.user.dto.SignupCustomerDetails;
+import com.website_backend.user.errors.UsernameExistsException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.User;
@@ -24,7 +26,13 @@ public class CustomerService {
     this.encoder = encoder;
   }
 
-  public void saveCustomer(SignupCustomerDetails customerDetails){
+  /**
+   * 1. Saves customer username (email) and password
+   * 2. Saves customer profile (name, address etc)
+   * @param customerDetails
+   */
+  public void saveCustomer(SignupCustomerDetails customerDetails)
+      throws DatabaseException, UsernameExistsException {
     try {
       UserDetails userDetails = User.builder()
           .username(customerDetails.username())
@@ -34,10 +42,10 @@ public class CustomerService {
       jdbcUserDetailsManager.createUser(userDetails);
       customerRepository.saveCustomerProfile(customerDetails);
     } catch (DuplicateKeyException e) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "An account with that username already exists");
+      throw new UsernameExistsException("An account with that username already exists");
     }
     catch (Exception e){
-      throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to save new user");
+      throw new DatabaseException(e.getMessage());
     }
   }
 

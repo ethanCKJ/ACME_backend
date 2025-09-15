@@ -6,7 +6,7 @@ import com.website_backend.orders.dto.StaffOrder;
 import com.website_backend.orders.dto.StaffOrderDetail;
 import com.website_backend.orders.enums.OrderState;
 import com.website_backend.orders.enums.ProductCategory;
-import com.website_backend.orders.errors.DatabaseException;
+import com.website_backend.errors.DatabaseException;
 import java.sql.Date;
 import java.sql.Types;
 import java.time.format.DateTimeFormatter;

@@ -1,4 +1,4 @@
-package com.website_backend.account.dto;
+package com.website_backend.user.dto;
 
 /**
  * Customer information loaded from database to autofill the order submission form
