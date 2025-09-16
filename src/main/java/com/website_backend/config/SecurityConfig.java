@@ -47,7 +47,7 @@ public class SecurityConfig {
   @Bean
   public JwtEncoder jwtEncoder() {
     // JWK is JSON web keys
-    JWK jwk = new RSAKey.Builder(rsaKeys.publicKey()).privateKey(rsaKeys.privateKey()).build();
+    JWK jwk = new RSAKey.Builder(rsaKeys.getPublicKey()).privateKey(rsaKeys.getPrivateKey()).build();
     // Convert into interface consumable by NimbusJwtEncoder
     JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
     return new NimbusJwtEncoder(jwks);
@@ -75,7 +75,7 @@ public class SecurityConfig {
 
   @Bean
   JwtDecoder jwtDecoder(){
-    return NimbusJwtDecoder.withPublicKey(rsaKeys.publicKey()).build();
+    return NimbusJwtDecoder.withPublicKey(rsaKeys.getPublicKey()).build();
   }
 
   @Bean
