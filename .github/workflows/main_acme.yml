@@ -48,6 +48,12 @@ jobs:
           chmod 644 src/main/resources/certs/public.pem
           chmod 600 src/main/resources/certs/private.pem
 
+          echo "Listing resources dir:"
+          ls -la src/main/resources || true
+
+          echo "Listing certs dir:"
+          ls -la src/main/resources/certs || true
+
       - name: Copy application.properties template (placeholders left for runtime)
         run: |
           if [ -f src/main/resources/application.properties.template ]; then
@@ -94,5 +100,6 @@ jobs:
           package: '*.jar'
 
           
+
 
 
