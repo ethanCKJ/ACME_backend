@@ -14,6 +14,11 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read #This is required for actions/checkout
+    env: 
+      ACME_DATASOURCE_URL: ${{ vars.ACME_DATASOURCE_URL }}
+      ACME_DB_USERNAME: ${{ vars.ACME_DB_USERNAME }}
+      ACME_DB_PASSWORD: ${{ secrets.ACME_DB_PASSWORD }}
+      ACME_ALLOWED_ORIGINS: ${{ vars.ACME_ALLOWED_ORIGINS }}
 
     steps:
       - uses: actions/checkout@v4
@@ -28,10 +33,6 @@ jobs:
         env:
           ACME_PUBLIC_KEY: ${{ vars.ACME_PUBLIC_KEY }}
           ACME_PRIVATE_KEY: ${{ secrets.ACME_PRIVATE_KEY }}
-          ACME_DATASOURCE_URL: ${{ vars.ACME_DATASOURCE_URL }}
-          ACME_DB_USERNAME: ${{ vars.ACME_DB_USERNAME }}
-          ACME_DB_PASSWORD: ${{ secrets.ACME_DB_PASSWORD }}
-          ACME_ALLOWED_ORIGINS: ${{ vars.ACME_ALLOWED_ORIGINS }}
         run: |
           # create certs dir in resources so they are packaged on the classpath
           mkdir -p src/main/resources/certs
@@ -93,4 +94,5 @@ jobs:
           package: '*.jar'
 
           
+
 
