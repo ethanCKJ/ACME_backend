@@ -71,6 +71,16 @@ jobs:
             exit 1
           fi
 
+      - name: Debug rsa inputs
+        run: |
+          echo "---- rsa properties in application.properties ----"
+          grep -E '^rsa\.' src/main/resources/application.properties || echo "(none)"
+          echo "---- cert files ----"
+          ls -l src/main/resources/certs || true
+          echo "---- cert sizes (bytes) ----"
+          wc -c src/main/resources/certs/* || true
+
+
       - name: Build with Maven
         run: mvn clean install
 
@@ -107,6 +117,7 @@ jobs:
           app-name: 'acme'
           slot-name: 'Production'
           package: '*.jar'
+
 
 
 
