@@ -1,7 +1,6 @@
 package com.website_backend;
 
 import com.website_backend.config.RsaKeyProperties;
-import java.util.List;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -11,6 +10,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 public class WebsiteBackendApplication {
 
   public static void main(String[] args) {
+    System.out.println("ENVIRONMENT VARIABLES " + System.getenv("ACME_ALLOWED_ORIGINS"));
     SpringApplication.run(WebsiteBackendApplication.class, args);
   }
 
