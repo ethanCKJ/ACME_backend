@@ -1,6 +1,3 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
 name: Build and deploy JAR app to Azure Web App - acme
 
 on:
@@ -14,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read #This is required for actions/checkout
-    env: 
+    env:
       ACME_DATASOURCE_URL: ${{ vars.ACME_DATASOURCE_URL }}
       ACME_DB_USERNAME: ${{ vars.ACME_DB_USERNAME }}
       ACME_DB_PASSWORD: ${{ secrets.ACME_DB_PASSWORD }}
@@ -29,39 +26,51 @@ jobs:
           java-version: '21'
           distribution: 'microsoft'
 
-      - name: Restore certificates (write public and private PEM files)
+      - name: Restore certificates (write PUBLIC_PEM and PRIVATE_PEM)
         env:
-          ACME_PUBLIC_KEY: ${{ vars.PUBLIC_PEM }}
-          ACME_PRIVATE_KEY: ${{ secrets.PRIVATE_PEM }}
+          PUBLIC_PEM: ${{ vars.PUBLIC_PEM }}       # repository Variable (multiline PEM)
+          PRIVATE_PEM: ${{ secrets.PRIVATE_PEM }}   # repository Secret (multiline PEM)
         run: |
-          # create certs dir in resources so they are packaged on the classpath
+          set -euo pipefail
+
           mkdir -p src/main/resources/certs
 
-          # write the public key (repository variable) to public.pem
-          printf '%s\n' "$ACME_PUBLIC_KEY" > src/main/resources/certs/public.pem
+          # fail early if missing
+          if [ -z "${PUBLIC_PEM:-}" ]; then
+            echo "ERROR: PUBLIC_PEM is empty. Check Repository Variables -> PUBLIC_PEM" >&2
+            exit 1
+          fi
+          if [ -z "${PRIVATE_PEM:-}" ]; then
+            echo "ERROR: PRIVATE_PEM is empty. Check Repository Secrets -> PRIVATE_PEM" >&2
+            exit 1
+          fi
 
-          # write the private key (secret) to private.pem
-          # ensure no accidental output of the secret
-          printf '%s\n' "$ACME_PRIVATE_KEY" > src/main/resources/certs/private.pem
-
-          # secure permissions
-          chmod 644 src/main/resources/certs/public.pem
+          # write private key (preserve newlines)
+          cat > src/main/resources/certs/private.pem <<EOF
+${PRIVATE_PEM}
+EOF
           chmod 600 src/main/resources/certs/private.pem
 
-          echo "Listing resources dir:"
-          ls -la src/main/resources || true
+          # write public key
+          cat > src/main/resources/certs/public.pem <<EOF
+${PUBLIC_PEM}
+EOF
+          chmod 644 src/main/resources/certs/public.pem
 
-          echo "Listing certs dir:"
-          ls -la src/main/resources/certs || true
+          # report sizes only (safe)
+          echo "Wrote cert files:"
+          ls -l src/main/resources/certs
+          wc -c src/main/resources/certs/*.pem
 
       - name: Copy application.properties template (placeholders left for runtime)
         run: |
           if [ -f src/main/resources/application.properties.template ]; then
             cp src/main/resources/application.properties.template src/main/resources/application.properties
           else
-            echo "WARNING: application.properties.template not found; skipping copy."
+            echo "ERROR: application.properties.template not found" >&2
+            exit 1
           fi
-          
+
       - name: Build with Maven
         run: mvn clean install
 
@@ -77,13 +86,13 @@ jobs:
     permissions:
       id-token: write #This is required for requesting the JWT
       contents: read #This is required for actions/checkout
-  
+
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: java-app
-      
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -98,9 +107,3 @@ jobs:
           app-name: 'acme'
           slot-name: 'Production'
           package: '*.jar'
-
-          
-
-
-
-
