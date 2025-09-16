@@ -45,12 +45,16 @@ jobs:
             exit 1
           fi
 
-          # write private key (preserve newlines)
-          cat > src/main/resources/certs/private.pem <<EOF${PRIVATE_PEM}EOF
+              # write private key
+          cat > src/main/resources/certs/private.pem <<'PRIVATE_EOF'
+          ${PRIVATE_PEM}
+          PRIVATE_EOF
           chmod 600 src/main/resources/certs/private.pem
 
           # write public key
-          cat > src/main/resources/certs/public.pem <<EOF${PUBLIC_PEM}EOF
+          cat > src/main/resources/certs/public.pem <<'PUBLIC_EOF'
+          ${PUBLIC_PEM}
+          PUBLIC_EOF
           chmod 644 src/main/resources/certs/public.pem
 
           # report sizes only (safe)
@@ -103,6 +107,7 @@ jobs:
           app-name: 'acme'
           slot-name: 'Production'
           package: '*.jar'
+
 
 
 
