@@ -12,10 +12,10 @@ jobs:
     permissions:
       contents: read #This is required for actions/checkout
     env:
-      ACME_DATASOURCE_URL: ${{ vars.ACME_DATASOURCE_URL }}
-      ACME_DB_USERNAME: ${{ vars.ACME_DB_USERNAME }}
+      ACME_DATASOURCE_URL: ${{ secrets.ACME_DATASOURCE_URL }}
+      ACME_DB_USERNAME: ${{ secrets.ACME_DB_USERNAME }}
       ACME_DB_PASSWORD: ${{ secrets.ACME_DB_PASSWORD }}
-      ACME_ALLOWED_ORIGINS: ${{ vars.ACME_ALLOWED_ORIGINS }}
+      ACME_ALLOWED_ORIGINS: ${{ secrets.ACME_ALLOWED_ORIGINS }}
 
     steps:
       - uses: actions/checkout@v4
@@ -28,13 +28,10 @@ jobs:
 
       - name: Restore certificates (write PUBLIC_PEM and PRIVATE_PEM)
         env:
-          PUBLIC_PEM: ${{ vars.PUBLIC_PEM }}       # repository Variable (multiline PEM)
+          PUBLIC_PEM: ${{ secrets.PUBLIC_PEM }}       # repository Variable (multiline PEM)
           PRIVATE_PEM: ${{ secrets.PRIVATE_PEM }}   # repository Secret (multiline PEM)
         run: |
           set -euo pipefail
-          printenv | grep "ACME"
-          echo "PEMs"
-          printenv | grep "PEM"
 
           mkdir -p src/main/resources/certs
 
@@ -106,5 +103,6 @@ jobs:
           app-name: 'acme'
           slot-name: 'Production'
           package: '*.jar'
+
 
 
