@@ -24,6 +24,33 @@ jobs:
           java-version: '21'
           distribution: 'microsoft'
 
+      - name: Restore certificates (write public and private PEM files)
+        env:
+          ACME_PUBLIC_KEY: ${{ vars.ACME_PUBLIC_KEY }}
+          ACME_PRIVATE_KEY: ${{ secrets.ACME_PRIVATE_KEY }}
+        run: |
+          # create certs dir in resources so they are packaged on the classpath
+          mkdir -p src/main/resources/certs
+
+          # write the public key (repository variable) to public.pem
+          printf '%s\n' "$ACME_PUBLIC_KEY" > src/main/resources/certs/public.pem
+
+          # write the private key (secret) to private.pem
+          # ensure no accidental output of the secret
+          printf '%s\n' "$ACME_PRIVATE_KEY" > src/main/resources/certs/private.pem
+
+          # secure permissions
+          chmod 644 src/main/resources/certs/public.pem
+          chmod 600 src/main/resources/certs/private.pem
+
+      - name: Copy application.properties template (placeholders left for runtime)
+        run: |
+          if [ -f src/main/resources/application.properties.template ]; then
+            cp src/main/resources/application.properties.template src/main/resources/application.properties
+          else
+            echo "WARNING: application.properties.template not found; skipping copy."
+          fi
+          
       - name: Build with Maven
         run: mvn clean install
 
@@ -60,4 +87,5 @@ jobs:
           app-name: 'acme'
           slot-name: 'Production'
           package: '*.jar'
+
           
