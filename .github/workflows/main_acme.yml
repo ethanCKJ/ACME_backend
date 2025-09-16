@@ -46,16 +46,12 @@ jobs:
           fi
 
               # write private key
-          cat > src/main/resources/certs/private.pem <<'PRIVATE_EOF'
-          ${PRIVATE_PEM}
-          PRIVATE_EOF
+          printf '%s\n' "$PRIVATE_PEM" > src/main/resources/certs/private.pem
           chmod 600 src/main/resources/certs/private.pem
-
-          # write public key
-          cat > src/main/resources/certs/public.pem <<'PUBLIC_EOF'
-          ${PUBLIC_PEM}
-          PUBLIC_EOF
+          
+          printf '%s\n' "$PUBLIC_PEM"  > src/main/resources/certs/public.pem
           chmod 644 src/main/resources/certs/public.pem
+
 
           # report sizes only (safe)
           echo "Wrote cert files:"
@@ -117,6 +113,7 @@ jobs:
           app-name: 'acme'
           slot-name: 'Production'
           package: '*.jar'
+
 
 
 
