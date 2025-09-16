@@ -31,8 +31,8 @@ jobs:
 
       - name: Restore certificates (write public and private PEM files)
         env:
-          ACME_PUBLIC_KEY: ${{ vars.ACME_PUBLIC_KEY }}
-          ACME_PRIVATE_KEY: ${{ secrets.ACME_PRIVATE_KEY }}
+          ACME_PUBLIC_KEY: ${{ vars.PUBLIC_PEM }}
+          ACME_PRIVATE_KEY: ${{ secrets.PRIVATE_PEM }}
         run: |
           # create certs dir in resources so they are packaged on the classpath
           mkdir -p src/main/resources/certs
@@ -100,6 +100,7 @@ jobs:
           package: '*.jar'
 
           
+
 
 
 
