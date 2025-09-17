@@ -67,6 +67,11 @@ public class Controller {
     this.customerRepository = customerRepository;
   }
 
+  @GetMapping("/greeting")
+  public ResponseEntity<?> greeting(){
+    return new ResponseEntity<>("Hello world!", HttpStatus.OK);
+  }
+
   /**
    * Get product details of all products in a particular category and within minPrice and maxPrice (inclusive)
    * @param category
